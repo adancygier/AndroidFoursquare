@@ -274,6 +274,21 @@ public class FoursquareApp {
                         else {
                         	venue.distance = 0;
                         }
+                        
+                        if (location.has("lat")) {
+                        	venue.lat = location.getDouble("lat");
+                        }
+                        else {
+                        	venue.lat = 0;
+                        }
+                        
+                        if (location.has("lng")) {
+                        	venue.lng = location.getDouble("lng");
+                        }
+                        else {
+                        	venue.lng = 0;
+                        }
+                            
                             
                         if (group.has("type")) {
     						venue.type = group.getString("type");

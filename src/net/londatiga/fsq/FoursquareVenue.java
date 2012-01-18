@@ -15,5 +15,7 @@ public class FoursquareVenue {
     public String city;
     public String state;
     public String icon;
+    public double lat;
+    public double lng;
 	public int herenow;
 }
