@@ -199,6 +199,125 @@ public class FoursquareApp {
 		mDialog.show();
 	}
     
+	public FoursquareVenue getVenue(String id) throws IOException, JSONException {
+		FoursquareVenue venue = new FoursquareVenue();
+		
+        String url_str = API_URL + "/venues/" + id + "?oauth_token=" + mAccessToken;
+        
+        URL url;
+		try {
+			url = new URL(url_str);
+		    Log.d(TAG, "Opening URL " + url.toString());
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("GET");
+			urlConnection.setDoInput(true);
+			urlConnection.setDoOutput(true);
+			urlConnection.connect();
+			String response		= streamToString(urlConnection.getInputStream());
+            
+            JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
+			JSONObject ven_obj = jsonObj.getJSONObject("response").getJSONObject("venue");
+            JSONObject location = ven_obj.getJSONObject("location");
+            JSONArray categories = ven_obj.getJSONArray("categories");
+            
+            JSONObject cat = null;
+            
+            venue.name = ven_obj.getString("name");
+            venue.id = ven_obj.getString("id");
+            
+            
+            if (categories.length() > 0) {
+                cat = categories.getJSONObject(0);
+                
+                if (cat.has("icon")) {
+                    venue.icon = cat.getString("icon");
+                }
+                else {
+                    venue.icon = "";	
+                }
+            }
+            
+            JSONObject tips = ven_obj.getJSONObject("tips");
+            
+            if (tips.has("count")) {
+                venue.tip_count = tips.getInt("count");
+            }
+            else {
+            	venue.tip_count = 0;
+            }
+            
+            if (location.has("address")) {
+			    venue.address = location.getString("address");
+            }
+            else {
+            	venue.address = "";
+            }
+                
+            if (location.has("distance")) {
+			    venue.distance = location.getInt("distance");
+            }
+            else {
+            	venue.distance = 0;
+            }
+            
+            if (location.has("lat")) {
+            	venue.lat = location.getDouble("lat");
+            }
+            else {
+            	venue.lat = 0;
+            }
+            
+            if (location.has("lng")) {
+            	venue.lng = location.getDouble("lng");
+            }
+            else {
+            	venue.lng = 0;
+            }
+                
+            if (location.has("city")) {
+                venue.city = location.getString("city");
+            }
+            else {
+                venue.city = "";
+            }
+                
+            if (location.has("state")) {
+                venue.state = location.getString("state");
+            }
+            else {
+                venue.state = "";
+            }
+                
+            if (location.has("postalCode")) {
+                venue.postalCode = location.getString("postalCode");
+            }
+            else {
+                venue.postalCode = "";
+            }
+            
+            if (ven_obj.has("hereNow") && ven_obj.getJSONObject("hereNow").has("count")) {
+			    venue.herenow = ven_obj.getJSONObject("hereNow").getInt("count");
+            }
+            else {
+                venue.herenow = 0;	
+            }
+		}
+		catch (MalformedURLException mfe) {
+            Log.e(TAG, "Caught MalformedURLException in venues api call: " + mfe.toString());
+			throw mfe;
+		}
+		catch (IOException ioe) {
+            Log.e(TAG, "Caught IOException in venues api call: " + ioe.toString());
+            throw ioe;
+		}
+		catch (JSONException jsone) {
+            Log.e(TAG, "Caught JSONException in venues api call: " + jsone.toString());
+            throw jsone;
+		}
+			
+        return venue;
+	}
+    
 	public ArrayList<FoursquareVenue> getVenues(String lat, String lon, String query) throws MalformedURLException, IOException, JSONException {
 		ArrayList<FoursquareVenue> venueList = new ArrayList<FoursquareVenue>();
         
