@@ -15,8 +15,13 @@ public class FoursquareVenue {
 	public int distance;
     public String postalCode;
     public String city;
-    public String state;
-    public String icon;
+    public String state; 
+    public String icon = "";
+    public String icon_32 = "";
+    public String icon_44 = "";
+    public String icon_64 = "";
+    public String icon_88 = "";
+    public String icon_256 = "";
     public double lat;
     public double lng;
 	public int herenow;

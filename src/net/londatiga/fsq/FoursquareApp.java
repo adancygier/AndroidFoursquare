@@ -46,6 +46,7 @@ public class FoursquareApp {
 	private static final String API_URL = "https://api.foursquare.com/v2";
 	
 	private static final String TAG = "FoursquareApi";
+    private static final String VDATE = "20120120";
 	
 	public FoursquareApp(Context context, String clientId, String clientSecret) {
 		mSession		= new FoursquareSession(context);
@@ -202,7 +203,7 @@ public class FoursquareApp {
 	public FoursquareVenue getVenue(String id) throws IOException, JSONException {
 		FoursquareVenue venue = new FoursquareVenue();
 		
-        String url_str = API_URL + "/venues/" + id + "?oauth_token=" + mAccessToken;
+        String url_str = API_URL + "/venues/" + id + "?oauth_token=" + mAccessToken + "&v=" + VDATE;
         
         URL url;
 		try {
@@ -220,22 +221,49 @@ public class FoursquareApp {
             JSONObject location = ven_obj.getJSONObject("location");
             JSONArray categories = ven_obj.getJSONArray("categories");
             
-            JSONObject cat = null;
-            
             venue.name = ven_obj.getString("name");
             venue.id = ven_obj.getString("id");
             
-            
             if (categories.length() > 0) {
-                cat = categories.getJSONObject(0);
-                
+                JSONObject cat = (JSONObject) categories.get(0);
+                                
                 if (cat.has("icon")) {
-                    venue.icon = cat.getString("icon");
-                }
-                else {
-                    venue.icon = "";	
+                	String pre = cat.getJSONObject("icon").getString("prefix");
+                	JSONArray sizes = cat.getJSONObject("icon").getJSONArray("sizes");
+                    String file_ext = cat.getJSONObject("icon").getString("name"); 
+                                
+                    venue.icon = pre + String.valueOf(sizes.getInt(0)) + file_ext;
+                                
+                    for (int x = 0; x < sizes.length(); x ++) {
+                        int sz = sizes.getInt(x);
+                        
+                        if (x == 0) {
+							venue.icon = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+                        }
+                                    
+                        switch (sz) {
+						case 32:
+							venue.icon_32 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+							break;
+						case 44:
+							venue.icon_44 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+							break;
+						case 64:
+							venue.icon_64 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+							break;
+						case 88:
+							venue.icon_88 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+							break;
+						case 256:
+							venue.icon_256 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+							break;
+						default:
+							break;
+						}
+                    }
                 }
             }
+        			   
             
             JSONObject tips = ven_obj.getJSONObject("tips");
             
@@ -322,7 +350,7 @@ public class FoursquareApp {
 		ArrayList<FoursquareVenue> venueList = new ArrayList<FoursquareVenue>();
         
 		String ll 	= lat + "," + lon;
-        String url_str = API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + mAccessToken;
+        String url_str = API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + mAccessToken + "&v=" + VDATE;
             
         if (query != null && query.length() > 0) {
         	String query_encoded = java.net.URLEncoder.encode(query);
@@ -339,113 +367,120 @@ public class FoursquareApp {
 			urlConnection.setDoInput(true);
 			urlConnection.setDoOutput(true);
 			urlConnection.connect();
-			String response		= streamToString(urlConnection.getInputStream());
+			String response	= streamToString(urlConnection.getInputStream());
                 
     			
             JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
-			JSONArray groups = (JSONArray) jsonObj.getJSONObject("response").getJSONArray("groups");
+			JSONArray venues = (JSONArray) jsonObj.getJSONObject("response").getJSONArray("venues");
     		
-			int length = groups.length();
+			int length = venues.length();
                 
     			
 			if (length > 0) {
-                for (int i = 0; i < groups.length(); i ++) {
-    				JSONObject group = (JSONObject) groups.get(i);
-    				JSONArray items = (JSONArray) group.getJSONArray("items");
-        					
-    				for (int j = 0; j < items.length(); j++) {
-    					JSONObject item = (JSONObject) items.get(j);
+                for (int i = 0; i < venues.length(); i ++) {
+					JSONObject item = (JSONObject) venues.get(i);
         						
-    					FoursquareVenue venue = new FoursquareVenue();
-    					venue.id 		= item.getString("id");
-    					venue.name		= item.getString("name");
+					FoursquareVenue venue = new FoursquareVenue();
+					venue.id 		= item.getString("id");
+					venue.name		= item.getString("name");
         						
-    					JSONObject location = (JSONObject) item.getJSONObject("location");
-    					JSONArray categories= (JSONArray) item.getJSONArray("categories");
+					JSONObject location = (JSONObject) item.getJSONObject("location");
+					JSONArray categories= (JSONArray) item.getJSONArray("categories");
                             
-                        //Log.v(TAG, "location: " +  location.toString());
-                        //Log.v(TAG, "categories: " +  categories.toString());
-                            
-    					if (categories.length() > 0) {
-                            JSONObject cat = (JSONObject) categories.get(0);
+					if (categories.length() > 0) {
+                        JSONObject cat = (JSONObject) categories.get(0);
                                 
-                            if (cat.has("icon")) {
-                                venue.icon = cat.getString("icon");
-                            }
-                            else {
-                                venue.icon = "";	
-                            }
-    				    }
-    					else {
-    						venue.icon = "";
-    					}
-        						
-                        if (location.has("address")) {
-    					    venue.address = location.getString("address");
-                        }
-                        else {
-                        	venue.address = "";
-                        }
-                            
-                        if (location.has("distance")) {
-    					    venue.distance = location.getInt("distance");
-                        }
-                        else {
-                        	venue.distance = 0;
-                        }
-                        
-                        if (location.has("lat")) {
-                        	venue.lat = location.getDouble("lat");
-                        }
-                        else {
-                        	venue.lat = 0;
-                        }
-                        
-                        if (location.has("lng")) {
-                        	venue.lng = location.getDouble("lng");
-                        }
-                        else {
-                        	venue.lng = 0;
-                        }
-                            
-                            
-                        if (group.has("type")) {
-    						venue.type = group.getString("type");
-                        }
-                        else {
-                        	venue.type = "";
-                        }
-                            
-                        if (location.has("city")) {
-                            venue.city = location.getString("city");
-                        }
-                        else {
-                            venue.city = "";
-                        }
-                            
-                        if (location.has("state")) {
-                            venue.state = location.getString("state");
-                        }
-                        else {
-                            venue.state = "";
-                        }
-                            
-                        if (location.has("postalCode")) {
-                            venue.postalCode = location.getString("postalCode");
-                        }
-                        else {
-                            venue.postalCode = "";
-                        }
-                            
-                        if (item.has("hereNow") && item.getJSONObject("hereNow").has("count")) {
-    					    venue.herenow = item.getJSONObject("hereNow").getInt("count");
-                        }
-                        else {
-                            venue.herenow = 0;	
-                        }
+                        if (cat.has("icon")) {
+                        	String pre = cat.getJSONObject("icon").getString("prefix");
+                        	JSONArray sizes = cat.getJSONObject("icon").getJSONArray("sizes");
+                            String file_ext = cat.getJSONObject("icon").getString("name"); 
                                 
-    					venueList.add(venue);
-    				}
+                            venue.icon = pre + String.valueOf(sizes.getInt(0)) + file_ext;
+                                
+                            for (int x = 0; x < sizes.length(); x ++) {
+                                int sz = sizes.getInt(x);
+                                    
+                                switch (sz) {
+								case 32:
+									venue.icon = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									venue.icon_32 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									break;
+								case 44:
+									venue.icon_44 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									break;
+								case 64:
+									venue.icon_64 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									break;
+								case 88:
+									venue.icon_88 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									break;
+								case 256:
+									venue.icon_256 = pre + String.valueOf(sizes.getInt(x)) + file_ext;
+									break;
+								default:
+									break;
+								}
+                            }
+                        }
+				    }
+        						
+                    if (location.has("address")) {
+					    venue.address = location.getString("address");
+                    }
+                    else {
+                    	venue.address = "";
+                    }
+                            
+                    if (location.has("distance")) {
+					    venue.distance = location.getInt("distance");
+                    }
+                    else {
+                    	venue.distance = 0;
+                    }
+                        
+                    if (location.has("lat")) {
+                    	venue.lat = location.getDouble("lat");
+                    }
+                    else {
+                    	venue.lat = 0;
+                    }
+                        
+                    if (location.has("lng")) {
+                    	venue.lng = location.getDouble("lng");
+                    }
+                    else {
+                    	venue.lng = 0;
+                    }
+                            
+                    if (location.has("city")) {
+                        venue.city = location.getString("city");
+                    }
+                    else {
+                        venue.city = "";
+                    }
+                            
+                    if (location.has("state")) {
+                        venue.state = location.getString("state");
+                    }
+                    else {
+                        venue.state = "";
+                    }
+                            
+                    if (location.has("postalCode")) {
+                        venue.postalCode = location.getString("postalCode");
+                    }
+                    else {
+                        venue.postalCode = "";
+                    }
+                            
+                    if (item.has("hereNow") && item.getJSONObject("hereNow").has("count")) {
+					    venue.herenow = item.getJSONObject("hereNow").getInt("count");
+                    }
+                    else {
+                        venue.herenow = 0;	
+                    }
+                                
+					venueList.add(venue);
                 }
 		    }
 		} catch (MalformedURLException mfe) {
