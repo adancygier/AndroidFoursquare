@@ -34,16 +34,16 @@ public class FoursquareVenue {
     public List<Tip> my_tips = new ArrayList<Tip>();
     
 	public class Tip {
-		String type;
-		int count;
-		String id;
-		long createdAt;
-		String text;
-		String user_id;
-		String firstName;
-		String lastName;
-		String photo;
-		String home_city;
+		public String type;
+		public int count;
+		public String id;
+		public long createdAt;
+		public String text;
+		public String user_id;
+		public String firstName;
+		public String lastName;
+		public String photo;
+		public String home_city;
 	}
     
 	public Tip createTip() {
