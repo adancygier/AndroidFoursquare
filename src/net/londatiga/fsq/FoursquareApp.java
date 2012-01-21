@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import net.londatiga.fsq.FoursquareDialog.FsqDialogListener;
+import net.londatiga.fsq.FoursquareVenue.Tip;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -272,6 +273,48 @@ public class FoursquareApp {
             }
             else {
             	venue.tip_count = 0;
+            }
+            
+            if (tips.has("groups")) {
+            	JSONArray groups = tips.getJSONArray("groups");
+                 
+                for (int i = 0; i < groups.length(); i++) {
+                	JSONObject group = (JSONObject) groups.get(i);
+                    
+                	String type = group.getString("type");
+                	int count = group.getInt("count");
+                    
+                	if (group.has("items")) {
+                		JSONArray items = group.getJSONArray("items");
+                        
+                		for (int j = 0; j < items.length(); j++) {
+                            JSONObject item = items.getJSONObject(j);
+                            
+                            if (item.has("user")) {
+                                JSONObject user = item.getJSONObject("user");
+                                
+                                Tip tip = venue.createTip(); 
+                                
+                                tip.count = count;
+                                tip.type = type;
+                                tip.createdAt = (item.has("createdAt")) ? item.getLong("createdAt") : 0;
+                                tip.firstName = (user.has("firstName")) ? user.getString("firstName") : "";
+                                tip.lastName = (user.has("lastName")) ? user.getString("lastName") : "";
+                                tip.home_city = (user.has("homeCity")) ? user.getString("homeCity") : "";
+                                tip.photo = (user.has("photo")) ? user.getString("photo") : "";
+                                tip.user_id = (user.has("id")) ? user.getString("id") : "";
+                                tip.text = (item.has("text")) ? item.getString("text") : "";
+                                
+                                if (type == "other") {
+                                	venue.other_tips.add(tip);
+                                }
+                                else {
+                                	venue.my_tips.add(tip);
+                                }
+                            }
+                		}
+                	}
+                }
             }
             
             if (location.has("address")) {

@@ -1,5 +1,6 @@
 package net.londatiga.fsq;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.location.Location;
@@ -26,11 +27,13 @@ public class FoursquareVenue {
     public double lng;
 	public int herenow;
     public int tip_count;
+    public int my_tip_count = 0;
+    public int other_tip_count = 0;
     
-    public List<Tip> other_tips;
-    public List<Tip> my_tips;
+    public List<Tip> other_tips = new ArrayList<Tip>();
+    public List<Tip> my_tips = new ArrayList<Tip>();
     
-	class Tip {
+	public class Tip {
 		String type;
 		int count;
 		String id;
@@ -38,7 +41,12 @@ public class FoursquareVenue {
 		String text;
 		String user_id;
 		String firstName;
+		String lastName;
 		String photo;
 		String home_city;
+	}
+    
+	public Tip createTip() {
+		return new Tip();
 	}
 }
