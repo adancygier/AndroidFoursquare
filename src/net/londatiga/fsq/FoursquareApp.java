@@ -305,7 +305,9 @@ public class FoursquareApp {
                                 tip.user_id = (user.has("id")) ? user.getString("id") : "";
                                 tip.text = (item.has("text")) ? item.getString("text") : "";
                                 
-                                if (type == "other") {
+                                venue.all_tips.add(tip);
+                                    
+                                if (type.equals("others")) {
                                 	venue.other_tips.add(tip);
                                 }
                                 else {

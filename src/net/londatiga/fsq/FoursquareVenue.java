@@ -32,6 +32,7 @@ public class FoursquareVenue {
     
     public List<Tip> other_tips = new ArrayList<Tip>();
     public List<Tip> my_tips = new ArrayList<Tip>();
+    public List<Tip> all_tips = new ArrayList<Tip>();
     
 	public class Tip {
 		public String type;
