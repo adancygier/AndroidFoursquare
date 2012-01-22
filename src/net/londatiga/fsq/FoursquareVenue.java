@@ -27,6 +27,10 @@ public class FoursquareVenue {
     public double lng;
 	public int herenow;
     public int tip_count;
+    public String mayor_fname;
+    public String mayor_lname;
+    public String mayor_image;
+    public String mayor_badge_image;
     public int my_tip_count = 0;
     public int other_tip_count = 0;
     

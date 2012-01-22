@@ -374,6 +374,26 @@ public class FoursquareApp {
             else {
                 venue.herenow = 0;	
             }
+            
+            if (ven_obj.has("mayor")) {
+                JSONObject mayor = (JSONObject) ven_obj.getJSONObject("mayor");
+                
+                if (mayor.has("user")) {
+                	JSONObject user = (JSONObject) mayor.getJSONObject("user");
+                    
+                	if (user.has("firstName")) {
+                		venue.mayor_fname = user.getString("firstName");
+                	}
+                    
+                	if (user.has("lastName")) {
+                		venue.mayor_lname = user.getString("lastName");
+                	}
+                    
+                	if (user.has("photo")) {
+                		venue.mayor_image = user.getString("photo");
+                	}
+                }
+            }
 		}
 		catch (MalformedURLException mfe) {
             Log.e(TAG, "Caught MalformedURLException in venues api call: " + mfe.toString());
