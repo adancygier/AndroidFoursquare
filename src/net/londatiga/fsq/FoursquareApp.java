@@ -201,6 +201,65 @@ public class FoursquareApp {
 		mDialog.show();
 	}
     
+	public String checkIn(String venue_id, String shout, boolean fb_share) throws IOException, JSONException {
+        int response_code;
+        String checkin_id = "";
+        
+        String url_str = API_URL + "/checkins/add?" + "oauth_token=" + mAccessToken + "&venueId=" + venue_id;
+        
+        if (shout != null && shout.length() > 0) {
+        	String shout_encoded = java.net.URLEncoder.encode(shout);
+    		shout_encoded = shout_encoded.replace("+", "%20");        	
+        	
+            url_str = url_str + "&shout=" + shout_encoded; 
+        }
+        
+        if (fb_share) {
+            url_str = url_str + "&broadcast=public,facebook";
+        }
+        else {
+            url_str = url_str + "&broadcast=public";
+        }
+        
+        url_str = url_str + "&v=" + VDATE;
+        
+        URL url;
+        
+		try {
+			url = new URL(url_str);
+		
+		    Log.d(TAG, "Opening URL " + url.toString());
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("POST");
+			urlConnection.setDoInput(true);
+			urlConnection.setDoOutput(true);
+			urlConnection.connect();
+			String response	= streamToString(urlConnection.getInputStream());
+                
+            JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
+			response_code = jsonObj.getJSONObject("meta").getInt("code");
+            
+            // Error return empty string
+            if (response_code == 200) {
+            	checkin_id = jsonObj.getJSONObject("response").getJSONObject("checkin").getString("id");
+            }
+		}
+		catch (MalformedURLException mfe) {
+            Log.e(TAG, "Caught MalformedURLException in venues api call: " + mfe.toString());
+			throw mfe;
+		}
+		catch (IOException ioe) {
+            Log.e(TAG, "Caught IOException in venues api call: " + ioe.toString());
+            throw ioe;
+		}
+		catch (JSONException jsone) {
+            Log.e(TAG, "Caught JSONException in venues api call: " + jsone.toString());
+            throw jsone;
+		}	
+		
+		return checkin_id;
+	}
+    
 	public FoursquareVenue getVenue(String id) throws IOException, JSONException {
 		FoursquareVenue venue = new FoursquareVenue();
 		
@@ -215,7 +274,7 @@ public class FoursquareApp {
 			urlConnection.setDoInput(true);
 			urlConnection.setDoOutput(true);
 			urlConnection.connect();
-			String response		= streamToString(urlConnection.getInputStream());
+			String response	= streamToString(urlConnection.getInputStream());
             
             JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
 			JSONObject ven_obj = jsonObj.getJSONObject("response").getJSONObject("venue");
