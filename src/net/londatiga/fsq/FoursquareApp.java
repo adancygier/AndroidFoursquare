@@ -201,7 +201,7 @@ public class FoursquareApp {
 		mDialog.show();
 	}
     
-	public String checkIn(String venue_id, String shout, boolean fb_share) throws IOException, JSONException {
+	public String checkIn(String venue_id, String shout, boolean fb_share, boolean twitter_share) throws IOException, JSONException {
         int response_code;
         String checkin_id = "";
         
@@ -219,6 +219,10 @@ public class FoursquareApp {
         }
         else {
             url_str = url_str + "&broadcast=public";
+        }
+        
+        if (twitter_share) {
+            url_str = url_str + ",twitter";
         }
         
         url_str = url_str + "&v=" + VDATE;
@@ -259,6 +263,81 @@ public class FoursquareApp {
 		
 		return checkin_id;
 	}
+    
+    public String postTip(String venue_id, String tip_text, String share_url, boolean fb_share, boolean twitter_share) throws IOException, JSONException {
+        int response_code;
+        String tip_id = "";
+        /* https://api.foursquare.com/v2/tips/add?venueId=4ada7675f964a520c92221e3&oauth_token=W01TN1LGDEUZBKGZLXBD5EN1HITRAR0G1A4VMJXK40RA200J&v=2012&text=Testing 4sq API Leaving Tip This place rocks! */
+        String url_str = API_URL + "/tips/add?" + "oauth_token=" + mAccessToken + "&venueId=" + venue_id;
+        
+        if (tip_text != null && tip_text.length() > 0) {
+        	String tip_encoded = java.net.URLEncoder.encode(tip_text);
+    		tip_encoded = tip_encoded.replace("+", "%20");        	
+        	
+            url_str = url_str + "&text=" + tip_encoded; 
+        }
+        else {
+           /* empty string or null is an error we shouldn't leave empty tips should we. */
+        	return tip_id;
+        }
+        
+        if (fb_share) {
+            url_str = url_str + "&broadcast=facebook";
+        }
+        
+        if (twitter_share && fb_share) {
+            url_str = url_str + ",twitter";
+        }
+        else if (twitter_share) {
+            url_str = url_str + "&broadcast=twitter";
+        }
+        
+        if (share_url != null && share_url.length() > 0) {
+        	String url_encoded = java.net.URLEncoder.encode(share_url);
+    		url_encoded = url_encoded.replace("+", "%20");        	
+        	
+            url_str = url_str + "&url=" + url_encoded; 
+        }
+        
+        url_str = url_str + "&v=" + VDATE;
+        
+        URL url;
+        
+		try {
+			url = new URL(url_str);
+		
+		    Log.d(TAG, "Opening URL " + url.toString());
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("POST");
+			urlConnection.setDoInput(true);
+			urlConnection.setDoOutput(true);
+			urlConnection.connect();
+			String response	= streamToString(urlConnection.getInputStream());
+                
+            JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
+			response_code = jsonObj.getJSONObject("meta").getInt("code");
+            
+            // Error return empty string
+            if (response_code == 200) {
+            	tip_id = jsonObj.getJSONObject("response").getJSONObject("tip").getString("id");
+            }
+		}
+		catch (MalformedURLException mfe) {
+            Log.e(TAG, "Caught MalformedURLException in venues api call: " + mfe.toString());
+			throw mfe;
+		}
+		catch (IOException ioe) {
+            Log.e(TAG, "Caught IOException in venues api call: " + ioe.toString());
+            throw ioe;
+		}
+		catch (JSONException jsone) {
+            Log.e(TAG, "Caught JSONException in venues api call: " + jsone.toString());
+            throw jsone;
+		}	
+		
+		return tip_id;
+	}
+	
     
 	public FoursquareVenue getVenue(String id) throws IOException, JSONException {
 		FoursquareVenue venue = new FoursquareVenue();
