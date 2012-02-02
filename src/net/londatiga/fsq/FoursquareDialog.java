@@ -130,6 +130,12 @@ public class FoursquareDialog extends Dialog {
 	        		
 	        		return true;	        		
 	        	} 
+	        	else if (getContext().getResources().getString(R.string.release).equals("amazon") 
+	        			 && url.equals("https://market.android.com/details?id=com.joelapenna.foursquared")) {
+                	url = "http://www.amazon.com/gp/product/B004U7AKJK?ie=UTF8&ref=mas_dl";
+                    Log.v(TAG, "in onShouldOverrideUrlLoading replacing url with: " + url);
+                    view.loadUrl(url);
+	        	}
 	    
 	        	return false;
 	        }
