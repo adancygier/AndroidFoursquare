@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import net.londatiga.fsq.FoursquareDialog.FsqDialogListener;
@@ -54,10 +56,11 @@ public class FoursquareApp {
 		
 		mAccessToken	= mSession.getAccessToken();
 		
-		mTokenUrl		= TOKEN_URL + "&client_id=" + clientId + "&client_secret=" + clientSecret
-						+ "&redirect_uri=" + CALLBACK_URL;
+		mTokenUrl		= TOKEN_URL + "&client_id=" + URLEncoder.encode(clientId) + "&client_secret=" + URLEncoder.encode(clientSecret)
+						+ "&redirect_uri=" + URLEncoder.encode(CALLBACK_URL);
 		
-		String url		= AUTH_URL + "&client_id=" + clientId + "&redirect_uri=" + CALLBACK_URL;
+		String url = "";
+		url = AUTH_URL + "&client_id=" + clientId + "&redirect_uri=" + URLEncoder.encode(CALLBACK_URL);
 		
 		FsqDialogListener listener = new FsqDialogListener() {
 			@Override
@@ -90,7 +93,7 @@ public class FoursquareApp {
 				int what = 0;
 				
 				try {
-					URL url = new URL(mTokenUrl + "&code=" + code);
+					URL url = new URL(mTokenUrl + "&code=" + URLEncoder.encode(code));
 					
 					Log.i(TAG, "Opening URL " + url.toString());
 					
@@ -98,7 +101,7 @@ public class FoursquareApp {
 					
 					urlConnection.setRequestMethod("GET");
 					urlConnection.setDoInput(true);
-					urlConnection.setDoOutput(true);
+					urlConnection.setDoOutput(false);
 					
 					urlConnection.connect();
 					
@@ -127,7 +130,7 @@ public class FoursquareApp {
 				int what = 0;
 		
 				try {
-					URL url = new URL(API_URL + "/users/self?oauth_token=" + mAccessToken);
+					URL url = new URL(API_URL + "/users/self?oauth_token=" + URLEncoder.encode(mAccessToken));
 					
 					Log.d(TAG, "Opening URL " + url.toString());
 					
@@ -135,7 +138,7 @@ public class FoursquareApp {
 					
 					urlConnection.setRequestMethod("GET");
 					urlConnection.setDoInput(true);
-					urlConnection.setDoOutput(true);
+					urlConnection.setDoOutput(false);
 					
 					urlConnection.connect();
 					
@@ -205,10 +208,10 @@ public class FoursquareApp {
         int response_code;
         String checkin_id = "";
         
-        String url_str = API_URL + "/checkins/add?" + "oauth_token=" + mAccessToken + "&venueId=" + venue_id;
+        String url_str = API_URL + "/checkins/add?" + "oauth_token=" + URLEncoder.encode(mAccessToken) + "&venueId=" + venue_id;
         
         if (shout != null && shout.length() > 0) {
-        	String shout_encoded = java.net.URLEncoder.encode(shout);
+        	String shout_encoded = URLEncoder.encode(shout);
     		shout_encoded = shout_encoded.replace("+", "%20");        	
         	
             url_str = url_str + "&shout=" + shout_encoded; 
@@ -268,10 +271,10 @@ public class FoursquareApp {
         int response_code;
         String tip_id = "";
         /* https://api.foursquare.com/v2/tips/add?venueId=4ada7675f964a520c92221e3&oauth_token=W01TN1LGDEUZBKGZLXBD5EN1HITRAR0G1A4VMJXK40RA200J&v=2012&text=Testing 4sq API Leaving Tip This place rocks! */
-        String url_str = API_URL + "/tips/add?" + "oauth_token=" + mAccessToken + "&venueId=" + venue_id;
+        String url_str = API_URL + "/tips/add?" + "oauth_token=" + URLEncoder.encode(mAccessToken) + "&venueId=" + venue_id;
         
         if (tip_text != null && tip_text.length() > 0) {
-        	String tip_encoded = java.net.URLEncoder.encode(tip_text);
+        	String tip_encoded = URLEncoder.encode(tip_text);
     		tip_encoded = tip_encoded.replace("+", "%20");        	
         	
             url_str = url_str + "&text=" + tip_encoded; 
@@ -293,7 +296,7 @@ public class FoursquareApp {
         }
         
         if (share_url != null && share_url.length() > 0) {
-        	String url_encoded = java.net.URLEncoder.encode(share_url);
+        	String url_encoded = URLEncoder.encode(share_url);
     		url_encoded = url_encoded.replace("+", "%20");        	
         	
             url_str = url_str + "&url=" + url_encoded; 
@@ -342,7 +345,7 @@ public class FoursquareApp {
 	public FoursquareVenue getVenue(String id) throws IOException, JSONException {
 		FoursquareVenue venue = new FoursquareVenue();
 		
-        String url_str = API_URL + "/venues/" + id + "?oauth_token=" + mAccessToken + "&v=" + VDATE;
+        String url_str = API_URL + "/venues/" + id + "?oauth_token=" + URLEncoder.encode(mAccessToken) + "&v=" + VDATE;
         
         URL url;
 		try {
@@ -351,7 +354,7 @@ public class FoursquareApp {
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 			urlConnection.setRequestMethod("GET");
 			urlConnection.setDoInput(true);
-			urlConnection.setDoOutput(true);
+			urlConnection.setDoOutput(false);
 			urlConnection.connect();
 			String response	= streamToString(urlConnection.getInputStream());
             
@@ -553,10 +556,10 @@ public class FoursquareApp {
 		ArrayList<FoursquareVenue> venueList = new ArrayList<FoursquareVenue>();
         
 		String ll 	= lat + "," + lon;
-        String url_str = API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + mAccessToken + "&v=" + VDATE;
+        String url_str = API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + URLEncoder.encode(mAccessToken) + "&v=" + VDATE;
             
         if (query != null && query.length() > 0) {
-        	String query_encoded = java.net.URLEncoder.encode(query);
+        	String query_encoded = URLEncoder.encode(query);
     		query_encoded = query_encoded.replace("+", "%20");
         	url_str = url_str + "&query=" + query_encoded;
         }
@@ -568,7 +571,7 @@ public class FoursquareApp {
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 			urlConnection.setRequestMethod("GET");
 			urlConnection.setDoInput(true);
-			urlConnection.setDoOutput(true);
+			urlConnection.setDoOutput(false);
 			urlConnection.connect();
 			String response	= streamToString(urlConnection.getInputStream());
                 
@@ -705,7 +708,7 @@ public class FoursquareApp {
 		
 		try {
 			String ll 	= String.valueOf(latitude) + "," + String.valueOf(longitude);
-			URL url 	= new URL(API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + mAccessToken);
+			URL url 	= new URL(API_URL + "/venues/search?ll=" + ll + "&oauth_token=" + URLEncoder.encode(mAccessToken));
 			
 			Log.d(TAG, "Opening URL " + url.toString());
 			
@@ -713,7 +716,7 @@ public class FoursquareApp {
 			
 			urlConnection.setRequestMethod("GET");
 			urlConnection.setDoInput(true);
-			urlConnection.setDoOutput(true);
+			urlConnection.setDoOutput(false);
 			
 			urlConnection.connect();
 			
