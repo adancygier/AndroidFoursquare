@@ -4,12 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import net.londatiga.fsq.FoursquareDialog.FsqDialogListener;
 import net.londatiga.fsq.FoursquareVenue.Tip;
@@ -93,22 +94,26 @@ public class FoursquareApp {
 				int what = 0;
 				
 				try {
-					URL url = new URL(mTokenUrl + "&code=" + URLEncoder.encode(code));
+					URL url = new URL(mTokenUrl + "&code=" + code + "&v=" + VDATE);
 					
 					Log.i(TAG, "Opening URL " + url.toString());
 					
-					HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+					HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
 					
-					urlConnection.setRequestMethod("GET");
+					urlConnection.setRequestMethod("POST");
 					urlConnection.setDoInput(true);
-					urlConnection.setDoOutput(false);
+					urlConnection.setDoOutput(true);
 					
 					urlConnection.connect();
+                    int code = urlConnection.getResponseCode();
+                    String desc = urlConnection.getResponseMessage();
+                    
+                    Log.d(TAG, "code: " + code + " desc: " + desc);
 					
 					JSONObject jsonObj  = (JSONObject) new JSONTokener(streamToString(urlConnection.getInputStream())).nextValue();
 		        	mAccessToken 		= jsonObj.getString("access_token");
 		        	
-		        	Log.i(TAG, "Got access token: " + mAccessToken);
+		        	Log.v(TAG, "Got access token: " + mAccessToken);
 				} catch (Exception ex) {
 					what = 1;
 					
@@ -130,9 +135,9 @@ public class FoursquareApp {
 				int what = 0;
 		
 				try {
-					URL url = new URL(API_URL + "/users/self?oauth_token=" + URLEncoder.encode(mAccessToken));
+					URL url = new URL(API_URL + "/users/self?oauth_token=" + URLEncoder.encode(mAccessToken) + "&v=" + VDATE);
 					
-					Log.d(TAG, "Opening URL " + url.toString());
+					Log.d(TAG, "fetchUserName() Opening URL " + url.toString());
 					
 					HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 					
@@ -141,6 +146,9 @@ public class FoursquareApp {
 					urlConnection.setDoOutput(false);
 					
 					urlConnection.connect();
+					int code = urlConnection.getResponseCode();
+                    String desc = urlConnection.getResponseMessage();
+                    Log.d(TAG, "code: " + code + " desc: " + desc);
 					
 					String response		= streamToString(urlConnection.getInputStream());
 					JSONObject jsonObj 	= (JSONObject) new JSONTokener(response).nextValue();
@@ -270,7 +278,6 @@ public class FoursquareApp {
     public String postTip(String venue_id, String tip_text, String share_url, boolean fb_share, boolean twitter_share) throws IOException, JSONException {
         int response_code;
         String tip_id = "";
-        /* https://api.foursquare.com/v2/tips/add?venueId=4ada7675f964a520c92221e3&oauth_token=W01TN1LGDEUZBKGZLXBD5EN1HITRAR0G1A4VMJXK40RA200J&v=2012&text=Testing 4sq API Leaving Tip This place rocks! */
         String url_str = API_URL + "/tips/add?" + "oauth_token=" + URLEncoder.encode(mAccessToken) + "&venueId=" + venue_id;
         
         if (tip_text != null && tip_text.length() > 0) {
